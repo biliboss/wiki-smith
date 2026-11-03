@@ -5,6 +5,13 @@ The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-03
+
+### Changed
+
+- The description tells agents to load wiki-smith before writing anything in `.wiki/`, for any wiki request (creating a page or doc too), and adds the triggers "wiki", "create a doc in .wiki" and "cria um doc no .wiki".
+- The "Shared files across sessions" pitfall now says how to commit only your own lines of a shared `index.md`, inbox or day index (a blob from `HEAD` plus your lines, `git update-index --cacheinfo`, a direct commit) instead of only warning that the carry takes the whole diff.
+
 ## [0.1.1] - 2026-11-03
 
 ### Fixed

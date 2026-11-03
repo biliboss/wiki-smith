@@ -5,13 +5,15 @@ description: >-
   session (or during it) it looks at what happened and routes: a daily note, a fix to a topic
   page, a new map of content with its facet pages, or "nothing worth recording". Then it fixes the
   dates, regenerates the day index, lints, commits only its own files and syncs. Also looks things
-  up in the wiki cheaply (rg first). Use when the user says "update the wiki", "wiki update",
-  "note this in the wiki", "create a moc for X", "what did we learn today", "lint the wiki",
-  "anota no wiki", "consulta o wiki". Not skill-smith: that writes skills (SKILL.md), this writes
+  up in the wiki cheaply (rg first). Load it BEFORE writing anything in `.wiki/`, for any request
+  that touches the wiki (create a page or doc there, note, update, look up), never by hand-editing
+  first. Use when the user says "wiki", "update the wiki", "wiki update", "note this in the wiki",
+  "create a doc in .wiki", "create a moc for X", "what did we learn today", "lint the wiki",
+  "anota no wiki", "cria um doc no .wiki", "consulta o wiki". Not skill-smith: that writes skills (SKILL.md), this writes
   wiki pages. Needs a repo with a `.wiki/` folder; names and language come from
   `.wiki/wiki.config`.
 metadata:
-  version: 0.1.1
+  version: 0.1.2
   license: MIT
 ---
 
@@ -76,7 +78,7 @@ Commit what you wrote in the same session without waiting to be asked; publishin
 - **The diary is not the page.** A rule written only in a note is lost; ingest it into the topic page in the same session.
 - **Rules without history.** "Before creating a card, search for existing ones", not "we used to duplicate cards". The story stays in the note.
 - **One note per file.** Several agents write the same day; they must never edit the same file. The day index is generated; conflicts there are solved by running `day-index.sh` again.
-- **Shared files across sessions.** The day index, `index.md` and the inbox hold every session's uncommitted edits in one checkout. `sync.sh` never carries the day index (it regenerates it in the worktree) and lints before committing, but it cannot tell which hunks of a hand-edited `index.md` or inbox are yours: the carry takes the whole diff. Before committing them, look at `git diff` and leave out what is not yours. A foreign line that happens not to break the lint is still carried; that is the documented limit of the carry.
+- **Shared files across sessions.** The day index, `index.md` and the inbox hold every session's uncommitted edits in one checkout. `sync.sh` never carries the day index (it regenerates it in the worktree) and lints before committing, but it cannot tell which hunks of a hand-edited `index.md` or inbox are yours: the carry takes the whole diff. When `git diff` on one of them shows lines that are not yours, skip `sync.sh` and stage only your lines: write `git show HEAD:<file>` plus your lines to a scratch file, `git update-index --cacheinfo 100644,$(git hash-object -w <scratch>),<file>`, `git add` your own new files by path, lint, then `git commit` — the other session's lines stay in the working tree, uncommitted.
 - **Never wait on stdin.** `note.sh` reads the body only with `-b`; in an agent shell a bare read blocks forever. The same applies to any script you add.
 - **Do not record the transient**: a command that failed once and worked on retry, an environment glitch, a one-off task. Capture the working fix on the topic page, never "X is broken" (it hardens into a refusal after the cause is gone).
 - **Links:** relative, first mention per section only; an anchor is GitHub's slug of the heading (lowercase, no punctuation, accents kept, space becomes hyphen). Renaming a heading breaks its anchors; the lint says so. Put a link example inside backticks so the lint does not read it.
