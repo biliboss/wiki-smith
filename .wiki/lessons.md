@@ -4,3 +4,4 @@ One line per lesson from a real wiki-smith run: `- YYYY-MM-DD — <rule> — <wh
 
 - 2026-11-03 — In `sh`, never put a `case` with `)` patterns inside `$( ... )`, and never a bracket of accented letters under `LC_ALL=C` — macOS `/bin/sh` rejects the first, and the second splits UTF-8 letters into bytes (found porting the scripts). → promoted in 0.1.0 (scripts)
 - 2026-11-03 — Compare a port with the original on a real wiki and on a deliberately broken copy, sorted — file listing order differs between tools, so unsorted output looks like a mismatch. → promoted in 0.1.0 (lint.py sorts its output)
+- 2026-11-03 — Parse SKILL.md frontmatter with a real YAML parser (and run the installer) before publishing; a `: ` inside a plain-scalar description makes the skills CLI skip the whole skill — a regex check had passed it. → promoted in 0.1.0 (description is a folded block)

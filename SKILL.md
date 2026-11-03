@@ -1,6 +1,15 @@
 ---
 name: wiki-smith
-description: Own a repo's `.wiki/`, the memory that agents read and maintain themselves. At the end of a session (or during it) it looks at what happened and routes: a daily note, a fix to a topic page, a new map of content with its facet pages, or "nothing worth recording". Then it fixes the dates, regenerates the day index, lints, commits only its own files and syncs. Also looks things up in the wiki cheaply (rg first). Use when the user says "update the wiki", "wiki update", "note this in the wiki", "create a moc for X", "what did we learn today", "lint the wiki", "anota no wiki", "consulta o wiki". Not skill-smith: that writes skills (SKILL.md), this writes wiki pages. Needs a repo with a `.wiki/` folder; names and language come from `.wiki/wiki.config`.
+description: >-
+  Own a repo's `.wiki/`, the memory that agents read and maintain themselves. At the end of a
+  session (or during it) it looks at what happened and routes: a daily note, a fix to a topic
+  page, a new map of content with its facet pages, or "nothing worth recording". Then it fixes the
+  dates, regenerates the day index, lints, commits only its own files and syncs. Also looks things
+  up in the wiki cheaply (rg first). Use when the user says "update the wiki", "wiki update",
+  "note this in the wiki", "create a moc for X", "what did we learn today", "lint the wiki",
+  "anota no wiki", "consulta o wiki". Not skill-smith: that writes skills (SKILL.md), this writes
+  wiki pages. Needs a repo with a `.wiki/` folder; names and language come from
+  `.wiki/wiki.config`.
 metadata:
   version: 0.1.0
   license: MIT
