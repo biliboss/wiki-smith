@@ -11,7 +11,7 @@ description: >-
   wiki pages. Needs a repo with a `.wiki/` folder; names and language come from
   `.wiki/wiki.config`.
 metadata:
-  version: 0.1.0
+  version: 0.1.1
   license: MIT
 ---
 
@@ -36,7 +36,7 @@ Read the session (and `git diff`, `git log` for the work done). Pick **every** r
 
 | What the session had | What to do |
 |---|---|
-| A decision, delivery, change of course, incident or research | A daily note: `scripts/note.sh "Title that says what changed"`, fill the paragraph. Then the day's line in the inbox. |
+| A decision, delivery, change of course, incident or research | A daily note: `scripts/note.sh -b "Title that says what changed"` with the paragraph piped in. Then the day's line in the inbox. |
 | A rule, lesson or fact that holds beyond today | Also fix the **topic page**: the rule as it holds now, no history (history stays in the note and in the page's History section). Correct what the page said before; never stack "it used to be". |
 | A new subject with several facets (it will come back, and one page would mix kinds) | A map of content `moc-<topic>.md` plus pages `<topic>-<facet>.md` (cheatsheet, install, integration, comparison with the current tool...). See "New subject" below. |
 | Nothing worth recording (only intermediate steps, or what a commit already says) | Say so in one line and create nothing. Padding the diary makes it unreadable. |
@@ -45,7 +45,7 @@ Only a fresh note is ever created for the diary; never rewrite another agent's n
 
 ## Step 2 — Write
 
-**Daily note.** `scripts/note.sh "<title>"` creates `<DIARY_DIR>/<today>/<HHMM>-<slug>.md` in UTC and prints the path (slug rules and `-2` on collision are in the script). The body is one well-written paragraph: what happened, why it matters, where the evidence is (commit, PR, issue), with a link to the topic page. Links are relative to the day folder (`../../page.md`). Template: [templates/note.md](templates/note.md).
+**Daily note.** `scripts/note.sh "<title>"` creates `<DIARY_DIR>/<today>/<HHMM>-<slug>.md` in UTC and prints the path (slug rules and `-2` on collision are in the script). **Stdin is read only with `-b`**: agent shells and CI leave stdin open forever, so without `-b` the script never waits for it. Pipe the body: `printf '%s\n' "<paragraph>" | scripts/note.sh -b "<title>"`; `-b` puts exactly one blank line between the title and the body. Without `-b` the file is just the title line; to add the paragraph afterwards start it with a blank line: `printf '\n%s\n' "<paragraph>" >> "$path"`. The body is one well-written paragraph: what happened, why it matters, where the evidence is (commit, PR, issue), with a link to the topic page. Links are relative to the day folder (`../../page.md`). Template: [templates/note.md](templates/note.md).
 
 **First note of the day:** `scripts/day-index.sh` creates the day's index; then add the day at the top of "last days" in the inbox. If the note changes how the repo works, also add one line to the inbox's highlights. The inbox never holds a note.
 
@@ -62,8 +62,9 @@ Only a fresh note is ever created for the diary; never rewrite another agent's n
 1. `scripts/dates.sh` — the `created`/`updated` frontmatter, from git. Idempotent.
 2. `scripts/day-index.sh` — regenerate the day index. Never edit it by hand.
 3. `python3 -I scripts/lint.py` — fix every `file:line: type: message` it prints until it exits 0 (exit 2 means problems). Do not ship a red lint.
-4. Commit **only your own files, by path**, never `git add -A`: `scripts/sync.sh -m "wiki: <what>" <path>...`. It commits in place when the checkout is clean and current; otherwise it works in a fresh `git worktree` from `origin/<main>`. Add the attribution lines the repo or your host requires to the message.
-5. **Push only when the user asked to sync:** the same call with `-p` (fetch, rebase, `push HEAD:<main>`, fast-forward the checkout, remove the worktree). Never force, never touch other people's modified files. Open a PR only when asked.
+4. Commit **only your own files, by path**, never `git add -A`: `scripts/sync.sh -m "wiki: <what>" <path>...`. It commits in place when the checkout is on `<main>`, current and has no changes outside your paths; otherwise it carries your paths into a fresh `git worktree` from `origin/<main>`. Either way it lints exactly what it commits and refuses a red lint (exit 1, checkout untouched, carry worktree removed). In the carry the generated day index is never copied: it is regenerated in the worktree, so it lists only the notes that are in the commit. Add the attribution lines the repo or your host requires to the message.
+   - **Shared files (index, inbox) that another session may have edited too:** do not pass them to a carry. `scripts/sync.sh -W` prints a fresh worktree from `origin/<main>`; make your edits there (the wiki is at the same relative path), run `dates.sh`, `day-index.sh`, `lint.py`, then run `sync.sh -m ... [-p] <paths>` from inside that worktree. It commits there, and with `-p` rebases, pushes, fast-forwards the main checkout where it can, and removes the worktree. A carry that ships another session's lines (for example a link to a page that is only in the checkout) fails the lint and stops before anything is committed; that failure is the cue to use `-W`.
+5. **Push only when the user asked to sync:** the same call with `-p` (fetch, rebase, `push HEAD:<main>`, fast-forward the checkout, remove the worktree). Never force, never touch other people's modified files: a file that differs from what you pushed and may hold another session's edits (index, inbox) is left as it is. If the checkout cannot be fast-forwarded (local `<main>` diverged, or overlapping local edits) it says so and still exits 0, because the push worked. Open a PR only when asked.
 
 Commit what you wrote in the same session without waiting to be asked; publishing is the user's call.
 
@@ -76,6 +77,8 @@ Commit what you wrote in the same session without waiting to be asked; publishin
 - **The diary is not the page.** A rule written only in a note is lost; ingest it into the topic page in the same session.
 - **Rules without history.** "Before creating a card, search for existing ones", not "we used to duplicate cards". The story stays in the note.
 - **One note per file.** Several agents write the same day; they must never edit the same file. The day index is generated; conflicts there are solved by running `day-index.sh` again.
+- **Shared files across sessions.** The day index, `index.md` and the inbox hold every session's uncommitted edits in one checkout. `sync.sh` never carries the day index (it regenerates it in the worktree) and lints before committing, but it cannot tell which hunks of a hand-edited `index.md` or inbox are yours: the carry takes the whole diff. When another session may have touched them, use `sync.sh -W` and edit in the worktree. A foreign line that happens not to break the lint is still carried; that is the documented limit of the carry.
+- **Never wait on stdin.** `note.sh` reads the body only with `-b`; in an agent shell a bare read blocks forever. The same applies to any script you add.
 - **Do not record the transient**: a command that failed once and worked on retry, an environment glitch, a one-off task. Capture the working fix on the topic page, never "X is broken" (it hardens into a refusal after the cause is gone).
 - **Links:** relative, first mention per section only; an anchor is GitHub's slug of the heading (lowercase, no punctuation, accents kept, space becomes hyphen). Renaming a heading breaks its anchors; the lint says so. Put a link example inside backticks so the lint does not read it.
 - **Rename or delete a page:** `rg -l 'old-name' .wiki` and fix every link, anchors included; delete only after the content moved.

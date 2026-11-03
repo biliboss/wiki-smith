@@ -114,7 +114,7 @@ An interactive page (a graph, an animation) lives in `resources/<name>.html` and
 
 ## Commit what you wrote
 
-Whoever writes in the wiki commits it in the same session, without waiting to be asked: the note, the page, the day index, and the files elsewhere the note describes. First run `scripts/dates.sh`, `scripts/day-index.sh` and `scripts/lint.py`. Commit only your own files, by path (`git add <file>`, never `git add -A`): what another session left modified in the checkout stays out. Committing is not publishing: pushing and opening a PR is the user's decision. `scripts/sync.sh` does the commit, and the push when asked, safely when the checkout is behind or shared ([README](../README.md#the-scripts)).
+Whoever writes in the wiki commits it in the same session, without waiting to be asked: the note, the page, the day index, and the files elsewhere the note describes. First run `scripts/dates.sh`, `scripts/day-index.sh` and `scripts/lint.py`. Commit only your own files, by path (`git add <file>`, never `git add -A`): what another session left modified in the checkout stays out. Committing is not publishing: pushing and opening a PR is the user's decision. `scripts/sync.sh` does the commit (after a lint), and the push when asked, safely when the checkout is behind or shared; for the index or inbox, which other sessions may also have edited, start with `sync.sh -W` and edit in the worktree it prints ([README](../README.md#the-scripts)).
 
 ## "Wiki update"
 
@@ -134,4 +134,4 @@ It prints `file:line: type: message`, exits 2 with problems and 0 clean. Pages i
 
 ## Shared checkouts
 
-Several agents and people touch the same repo at once. Before editing, `git fetch` and fast-forward `<main>` if possible; if another session is in the main checkout, work in a new worktree from `origin/<main>`. Diary and inbox are append-only, so a conflict there is solved by keeping both sides. Never push to the main branch without being asked, never force, never reset or clean work that is not yours.
+Several agents and people touch the same repo at once. Before editing, `git fetch` and fast-forward `<main>` if possible; if another session is in the main checkout, work in a new worktree from `origin/<main>` (`scripts/sync.sh -W`). The day index is generated: never merge or carry it, regenerate it where you commit. Diary and inbox are append-only, so a conflict there is solved by keeping both sides. Never push to the main branch without being asked, never force, never reset or clean work that is not yours.

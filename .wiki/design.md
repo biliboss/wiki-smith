@@ -29,3 +29,7 @@ The original also moved hand-written notes out of a day file into their own file
 ## `sync.sh` uses a worktree when the checkout is shared (0.1.0)
 
 Agents and people share checkouts. When the checkout is behind, on another branch or has other people's changes, `sync.sh` carries only the given paths into a fresh worktree from `origin/<main>` (`git apply --3way`), commits, rebases and pushes there, then restores those paths in the checkout and fast-forwards it. A conflict stops with the checkout untouched. Pushing only happens with `-p`.
+
+## `sync.sh` lints, never carries the day index, and has `-W` (0.1.1)
+
+A carry takes the whole `git diff` of a path, so in a checkout shared by several sessions it also ships their uncommitted lines. The generated day index is therefore excluded from the carry and regenerated in the worktree (it lists only notes that are there). Hand-edited shared files (index, inbox) cannot be split into "my hunks" by a script, so the rule is: lint what will be committed and stop on red (a link to a page that was not carried is the usual sign), and offer `sync.sh -W` (a fresh worktree from `origin/<main>`, edited directly, committed from inside) as the way to touch them. Restoring paths in the checkout after a push never discards an edit that is not upstream; a failed fast-forward after a successful push is a message, exit 0. `note.sh` reads stdin only with `-b`, because agent shells leave stdin open forever.

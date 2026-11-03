@@ -20,7 +20,7 @@ wiki_resolve() {
     echo "wiki-smith: no wiki folder found (use -w DIR)" >&2
     exit 1
   fi
-  WIKI=$(cd "$WIKI" && pwd)
+  WIKI=$(cd "$WIKI" && pwd -P)
   CFG=${CFG_ARG:-${WIKI_CONFIG:-$WIKI/wiki.config}}
   if [ -f "$CFG" ]; then
     # shellcheck disable=SC1090

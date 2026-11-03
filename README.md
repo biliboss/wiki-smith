@@ -29,11 +29,12 @@ All take `-w <wiki dir>` and `-c <config>`. Plain POSIX `sh`, checked with `shel
 
 | Script | What it does |
 |---|---|
-| `scripts/note.sh "Title"` | Creates today's note `<diary>/<day>/<HHMM>-<slug>.md` (UTC, slug rules, `-2` on collision), prints the path; a body on stdin is appended |
+| `scripts/note.sh [-b] "Title"` | Creates today's note `<diary>/<day>/<HHMM>-<slug>.md` (UTC, slug rules, `-2` on collision), prints the path. Stdin is read only with `-b` (the body, after one blank line); without it the file is the title line and never waits on stdin |
 | `scripts/day-index.sh` | Regenerates every day index from its notes folder. Limit: hand-written old-format notes in a day file are an error with `file:line`, not migrated |
 | `scripts/dates.sh` | Writes `created`/`updated` from git (first/last commit; `updated` is today when the body changed since the last commit); idempotent |
 | `scripts/lint.py` | Links, GitHub-style anchors (accents kept), index, footer, empty/orphan pages, diary, dates, History. `file:line: type: message`; exit 0 clean, 2 problems. Run as `python3 -I scripts/lint.py` |
-| `scripts/sync.sh -m "msg" [-p] PATH...` | Commits only the given paths, in place or in a fresh `git worktree` from `origin/<main>` when the checkout is behind or shared; with `-p`: fetch, rebase, `push HEAD:<main>`, fast-forward the checkout, remove the worktree |
+| `scripts/sync.sh -m "msg" [-p] PATH...` | Commits only the given paths, in place or carried into a fresh `git worktree` from `origin/<main>` when the checkout is behind or shared; the generated day index is regenerated there, never carried; lints before committing and never pushes a red lint; with `-p`: fetch, rebase, `push HEAD:<main>`, fast-forward the checkout without touching others' edits, remove the worktree |
+| `scripts/sync.sh -W` | Prints a fresh worktree from `origin/<main>` to edit shared files (index, inbox) in; then `sync.sh -m ... [-p] PATH...` from inside it |
 
 ## What's inside
 

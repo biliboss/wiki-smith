@@ -1,21 +1,26 @@
 #!/bin/sh
 # note.sh - create today's journal note and print its path.
-# Usage: note.sh [-w WIKI_DIR] [-c CONFIG] "Title that says what changed" [< body]
+# Usage: note.sh [-w WIKI_DIR] [-c CONFIG] [-b] "Title that says what changed"
 # The file is <DIARY_DIR>/<YYYY-MM-DD>/<HHMM>-<slug>.md (UTC), starting with `## HH:MM — Title`.
-# A body piped on stdin is appended. WIKI_DATE / WIKI_TIME override the clock (tests).
+#   -b  read the body from stdin and append it after one blank line. Stdin is read ONLY with -b: agent
+#       shells and CI give a stdin that is open but never closes, so reading it implicitly would hang.
+# The file ends right after the title line (or after the body), with no trailing blank line. To add the
+# paragraph later with `>>`, start it with a blank line: printf '\n%s\n' "text" >> "$path".
+# WIKI_DATE / WIKI_TIME override the clock (tests).
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
-WIKI_ARG='' CFG_ARG=''
-while getopts 'w:c:' o; do
+WIKI_ARG='' CFG_ARG='' body=0
+while getopts 'w:c:b' o; do
   case $o in
     w) WIKI_ARG=$OPTARG ;;
     c) CFG_ARG=$OPTARG ;;
+    b) body=1 ;;
     *) exit 2 ;;
   esac
 done
 shift $((OPTIND - 1))
 if [ $# -lt 1 ]; then
-  echo 'usage: note.sh [-w DIR] [-c CONFIG] "Title"' >&2
+  echo 'usage: note.sh [-w DIR] [-c CONFIG] [-b] "Title"' >&2
   exit 2
 fi
 title=$1
@@ -59,8 +64,12 @@ path=$dir/$name
 
 hh=$(printf '%s' "$hhmm" | cut -c1-2)
 mm=$(printf '%s' "$hhmm" | cut -c3-4)
-printf '## %s:%s — %s\n\n' "$hh" "$mm" "$title" > "$path"
-if [ ! -t 0 ]; then cat >> "$path"; fi
+printf '## %s:%s — %s\n' "$hh" "$mm" "$title" > "$path"
+if [ "$body" -eq 1 ]; then
+  # Drop leading blank lines; $(...) drops trailing ones. Result: exactly one blank line after the title.
+  text=$(awk 'NF { started = 1 } started' || true)
+  if [ -n "$text" ]; then printf '\n%s\n' "$text" >> "$path"; fi
+fi
 
 if [ ! -f "$DIARY/$day.md" ]; then
   echo "wiki-smith: first note of $day: run day-index.sh, then add the day to $INBOX (last days)" >&2
