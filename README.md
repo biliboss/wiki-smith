@@ -1,3 +1,5 @@
+> **Arquivado.** Este skill agora mora no plugin [biliboss/skills](https://github.com/biliboss/skills) (`skills/wiki-smith/`). Instale com `claude plugin marketplace add biliboss/skills` e `claude plugin install biliboss-skills@biliboss`.
+
 # wiki-smith
 
 An agent skill that **owns a repo's `.wiki/`**: the memory that agents read and maintain themselves. At the end of a session it looks at what happened and decides what to write, following the wiki's own rules. It is a sibling of [skill-smith](https://github.com/biliboss/skill-smith/tree/481f8239b04d59d4d017b945699788660750a3bb) (which writes skills; this writes wiki pages). The idea of an LLM that keeps a persistent wiki is [Karpathy's](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f); the credits are in [ATTRIBUTION.md](ATTRIBUTION.md).
